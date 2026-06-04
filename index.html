@@ -106,9 +106,41 @@
   @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .progress-bar{width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;width:0%;transition:width .5s ease;}
+
+  /* Token screen */
+  .token-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .token-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px 28px;max-width:420px;width:100%;text-align:center;}
+  .token-logo{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;letter-spacing:4px;color:var(--gold);margin-bottom:8px;}
+  .token-logo span{color:var(--text);}
+  .token-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:24px;}
+  .token-desc{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:20px;}
+  .token-desc a{color:var(--gold);text-decoration:none;}
+  .token-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:12px 14px;outline:none;margin-bottom:12px;transition:border-color .2s;}
+  .token-input:focus{border-color:rgba(201,168,76,.4);}
+  .token-input::placeholder{color:var(--text-muted);}
+  .token-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold) 0%,#a87d2a 100%);border:none;border-radius:6px;color:#0a0700;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;cursor:pointer;}
+  .token-note{font-size:10px;color:var(--text-muted);margin-top:14px;line-height:1.6;}
+  .token-change{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text-muted);cursor:pointer;text-decoration:underline;margin-left:8px;}
 </style>
 </head>
 <body>
+
+
+<div class="token-screen" id="token-screen">
+  <div class="token-box">
+    <div class="token-logo">VISION<span>X</span></div>
+    <div class="token-sub">✦ Studio de IA ✦</div>
+    <div class="token-desc">
+      Para usar o app, você precisa de um token gratuito do Hugging Face.<br><br>
+      1. Acesse <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a><br>
+      2. Clique em <strong style="color:var(--text)">New token</strong> → Role: <strong style="color:var(--text)">Read</strong><br>
+      3. Cole o token abaixo
+    </div>
+    <input class="token-input" id="token-input" type="password" placeholder="hf_xxxxxxxxxxxxxxxx">
+    <button class="token-btn" onclick="saveToken()">✦ Entrar no Studio</button>
+    <div class="token-note">O token fica salvo no seu dispositivo e nunca é compartilhado.</div>
+  </div>
+</div>
 
 <header>
   <div class="logo">VISION<span>X</span></div>
@@ -306,7 +338,7 @@
 <footer>VISIONX ∙ <span>FLUX + Hugging Face</span> ∙ 100% Gratuito</footer>
 
 <script>
-  const HF_TOKEN = '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';
+  const HF_TOKEN = localStorage.getItem('hf_token') || '';
   let imgStyle='', vidMotion='cinematic';
   let gallery=[], lastImgBlob=null, lastVidBlob=null;
 
@@ -352,7 +384,7 @@
     const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${HF_TOKEN}`,
+        'Authorization': `Bearer ${HF_TOKEN_DYNAMIC}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -559,6 +591,30 @@
   }
   function closeModal(e){if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('on');}
   document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modal').classList.remove('on');});
+
+  // Token management
+  let HF_TOKEN_DYNAMIC = localStorage.getItem('hf_token') || '';
+  
+  function checkToken(){
+    const t = localStorage.getItem('hf_token');
+    if(t && t.startsWith('hf_')){
+      document.getElementById('token-screen').style.display='none';
+      HF_TOKEN_DYNAMIC = t;
+    } else {
+      document.getElementById('token-screen').style.display='flex';
+    }
+  }
+  
+  function saveToken(){
+    const t = document.getElementById('token-input').value.trim();
+    if(!t.startsWith('hf_')){alert('Token inválido! Deve começar com hf_');return;}
+    localStorage.setItem('hf_token', t);
+    HF_TOKEN_DYNAMIC = t;
+    document.getElementById('token-screen').style.display='none';
+  }
+  
+  checkToken();
+
 </script>
 </body>
 </html>
