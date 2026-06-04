@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISIONX — Studio de IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Syne:wght@400;600;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080808;--surface:#111;--surface2:#1a1a1a;--border:rgba(255,255,255,0.07);
+    --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:rgba(201,168,76,0.15);
+    --text:#f0ede6;--text-muted:#6b6560;--text-mid:#a09890;
+    --accent:#ff6b35;--error:#ff4757;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+  header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 24px;background:rgba(8,8,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+  .logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;letter-spacing:4px;color:var(--gold);text-transform:uppercase;}
+  .logo span{color:var(--text);}
+  .badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);padding:4px 10px;border-radius:2px;}
+  .container{max-width:1300px;margin:0 auto;padding:0 20px;}
+  .hero{padding:48px 0 32px;text-align:center;}
+  .eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;}
+  h1{font-family:'Playfair Display',serif;font-size:clamp(32px,6vw,64px);font-weight:900;line-height:1.05;background:linear-gradient(135deg,var(--text) 0%,var(--gold-light) 50%,var(--text) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+  .hero p{font-size:13px;color:var(--text-muted);max-width:420px;margin:0 auto;line-height:1.7;}
+  .tabs{display:flex;width:fit-content;margin:28px auto 36px;border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+  .tab-btn{padding:11px 30px;background:transparent;border:none;color:var(--text-muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .3s;}
+  .tab-btn.active{color:var(--gold);background:var(--gold-dim);}
+  .tab-divider{width:1px;background:var(--border);}
+  .tab-panel{display:none;}.tab-panel.active{display:block;}
+  .studio{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px;}
+  @media(max-width:800px){.studio{grid-template-columns:1fr;}}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;}
+  .panel-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .pdot{width:8px;height:8px;border-radius:50%;background:var(--gold);}
+  .ptitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;}
+  .panel-body{padding:20px;flex:1;display:flex;flex-direction:column;gap:16px;}
+  label.lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;display:block;}
+  textarea{width:100%;min-height:100px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;line-height:1.6;padding:12px 14px;resize:none;outline:none;transition:border-color .2s;}
+  textarea:focus{border-color:rgba(201,168,76,.4);}
+  textarea::placeholder{color:var(--text-muted);font-size:12px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{padding:4px 11px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .chip:hover{border-color:var(--gold);color:var(--gold-light);}
+  .chip.active{border-color:var(--gold);background:var(--gold-dim);color:var(--gold-light);}
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .pgroup{display:flex;flex-direction:column;gap:6px;}
+  .pgroup.full{grid-column:1/-1;}
+  select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;padding:8px 11px;outline:none;cursor:pointer;-webkit-appearance:none;transition:border-color .2s;}
+  select:hover{border-color:rgba(201,168,76,.3);}
+  select option{background:#1a1a1a;}
+  .btn-gen{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold) 0%,#a87d2a 100%);border:none;border-radius:6px;color:#0a0700;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .3s;}
+  .btn-gen:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(201,168,76,.3);}
+  .btn-gen:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn-gen.vid{background:linear-gradient(135deg,var(--accent) 0%,#c94020 100%);}
+  .outpanel{background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;min-height:460px;}
+  .outbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:14px;}
+  .empty{text-align:center;padding:30px;}
+  .empty-icon{width:56px;height:56px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;}
+  .empty p{font-size:12px;color:var(--text-muted);line-height:1.7;max-width:200px;margin:0 auto;}
+  .loader{display:none;flex-direction:column;align-items:center;gap:16px;}
+  .loader.on{display:flex;}
+  .ring{width:48px;height:48px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .ltxt{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;animation:pulse 2s ease-in-out infinite;text-align:center;}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+  .result{display:none;width:100%;flex-direction:column;gap:12px;}
+  .result.on{display:flex;}
+  .out-img{width:100%;border-radius:6px;border:1px solid var(--border);object-fit:contain;max-height:420px;display:block;cursor:zoom-in;}
+  .out-anim{width:100%;border-radius:6px;border:1px solid var(--border);object-fit:contain;max-height:420px;display:block;animation:zoomAnim 7s ease-in-out infinite alternate;}
+  .out-vid{width:100%;border-radius:6px;border:1px solid var(--border);max-height:420px;display:block;}
+  @keyframes zoomAnim{from{transform:scale(1)}to{transform:scale(1.08) translateX(-10px)}}
+  .meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);padding:7px 11px;background:var(--surface2);border-radius:4px;border:1px solid var(--border);line-height:1.8;}
+  .actions{display:flex;gap:8px;}
+  .btn-act{flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text-mid);font-family:'Syne',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;}
+  .btn-act:hover{border-color:var(--gold);color:var(--gold);}
+  .errbox{display:none;background:rgba(255,71,87,.07);border:1px solid rgba(255,71,87,.2);border-radius:8px;padding:16px;width:100%;}
+  .errbox.on{display:block;}
+  .errtitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--error);text-transform:uppercase;margin-bottom:8px;}
+  .errmsg{font-size:12px;color:#ff8a94;line-height:1.6;margin-bottom:10px;}
+  .errtips{font-size:11px;color:var(--text-muted);line-height:2;padding-left:14px;}
+  .callout{background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.15);border-radius:6px;padding:10px 14px;font-size:11px;color:var(--text-muted);line-height:1.6;}
+  .callout strong{color:var(--gold);}
+  .gallery-sec{margin-bottom:60px;}
+  .sec-hdr{display:flex;align-items:baseline;gap:14px;margin-bottom:20px;}
+  .sec-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .sec-line{flex:1;height:1px;background:var(--border);}
+  .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+  .gitem{border-radius:6px;overflow:hidden;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .3s;position:relative;aspect-ratio:1;}
+  .gitem:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .gitem img,.gitem video{width:100%;height:100%;object-fit:cover;display:block;}
+  .goverlay{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+  .gitem:hover .goverlay{opacity:1;}
+  .gbadge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);padding:3px 8px;border-radius:2px;}
+  .gtype{position:absolute;top:6px;right:6px;font-family:'DM Mono',monospace;font-size:8px;background:rgba(0,0,0,.7);color:var(--text-muted);padding:2px 6px;border-radius:2px;}
+  .gempty{grid-column:1/-1;text-align:center;padding:32px;color:var(--text-muted);font-size:12px;border:1px dashed var(--border);border-radius:6px;}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.93);backdrop-filter:blur(10px);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+  .modal-bg.on{display:flex;}
+  .modal{position:relative;}
+  .modal img,.modal video{max-width:92vw;max-height:88vh;border-radius:8px;object-fit:contain;}
+  .mclose{position:absolute;top:-38px;right:0;background:none;border:1px solid var(--border);color:var(--text-muted);font-size:16px;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .mclose:hover{border-color:var(--gold);color:var(--gold);}
+  footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;}
+  footer span{color:var(--gold);}
+  .fadein{animation:fadein .4s ease forwards;}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .progress-bar{width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;width:0%;transition:width .5s ease;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">VISION<span>X</span></div>
+  <div class="badge">HuggingFace ∙ FLUX</div>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <div class="eyebrow">✦ Powered by FLUX & Hugging Face ✦</div>
+    <h1>Crie sem limites.<br>Sem custo.</h1>
+    <p>Geração de imagens com FLUX — o modelo de IA mais avançado disponível gratuitamente.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('image')">🖼 Imagem</button>
+    <div class="tab-divider"></div>
+    <button class="tab-btn" onclick="switchTab('video')">🎬 Vídeo</button>
+  </div>
+
+  <!-- IMAGE -->
+  <div class="tab-panel active" id="tab-image">
+    <div class="studio">
+      <div class="panel">
+        <div class="panel-header"><div class="pdot"></div><div class="ptitle">Configuração</div></div>
+        <div class="panel-body">
+          <div>
+            <label class="lbl">✦ Prompt</label>
+            <textarea id="img-prompt" placeholder="Descreva sua imagem em detalhes... Ex: Cidade futurista ao anoitecer, luzes neon, chuva, estilo cyberpunk cinemático, ultra detailed 8k"></textarea>
+          </div>
+          <div>
+            <div class="lbl">✦ Estilo</div>
+            <div class="chips" id="img-chips">
+              <div class="chip active" data-v="">Padrão</div>
+              <div class="chip" data-v=", photorealistic, ultra realistic, 8k DSLR photo">Fotorealista</div>
+              <div class="chip" data-v=", digital art, concept art, artstation trending">Digital Art</div>
+              <div class="chip" data-v=", oil painting, impressionist brushwork, fine art">Pintura</div>
+              <div class="chip" data-v=", anime style, manga art, studio ghibli inspired">Anime</div>
+              <div class="chip" data-v=", cyberpunk, neon lights, futuristic dark city">Cyberpunk</div>
+              <div class="chip" data-v=", fantasy art, epic, dramatic lighting, magical">Fantasy</div>
+              <div class="chip" data-v=", cinematic still, film photography, 35mm grain">Cinemático</div>
+              <div class="chip" data-v=", watercolor painting, soft pastel colors, artistic">Aquarela</div>
+              <div class="chip" data-v=", minimalist, clean lines, geometric, simple">Minimalista</div>
+            </div>
+          </div>
+          <div class="pgrid">
+            <div class="pgroup">
+              <label class="lbl">Modelo</label>
+              <select id="img-model">
+                <option value="black-forest-labs/FLUX.1-schnell">FLUX Schnell (Rápido)</option>
+                <option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL 1.0</option>
+                <option value="runwayml/stable-diffusion-v1-5">SD 1.5 (Leve)</option>
+              </select>
+            </div>
+            <div class="pgroup">
+              <label class="lbl">Proporção</label>
+              <select id="img-size">
+                <option value="1024,1024">1:1 Quadrado</option>
+                <option value="1344,768">16:9 Wide</option>
+                <option value="768,1344">9:16 Retrato</option>
+                <option value="1216,832">3:2 Paisagem</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-gen" id="img-btn" onclick="genImage()">✦ Gerar Imagem</button>
+        </div>
+      </div>
+
+      <div class="outpanel">
+        <div class="panel-header"><div class="pdot" style="background:#7b61ff"></div><div class="ptitle">Resultado</div></div>
+        <div class="outbody">
+          <div class="empty" id="img-empty"><div class="empty-icon">🎨</div><p>Configure o prompt e clique em Gerar</p></div>
+          <div class="loader" id="img-loader">
+            <div class="ring"></div>
+            <div class="ltxt" id="img-ltxt">Gerando com FLUX...</div>
+            <div class="progress-bar"><div class="progress-fill" id="img-prog"></div></div>
+          </div>
+          <div class="result" id="img-result">
+            <img class="out-img" id="img-out" src="" alt="" onclick="openModal('img')">
+            <div class="meta" id="img-meta"></div>
+            <div class="actions">
+              <button class="btn-act" id="img-dl-btn" onclick="downloadImg()">⬇ Baixar</button>
+              <button class="btn-act" onclick="openModal('img')">⤢ Ampliar</button>
+              <button class="btn-act" onclick="addGallery('img')">＋ Galeria</button>
+            </div>
+          </div>
+          <div class="errbox" id="img-err">
+            <div class="errtitle">⚠ Erro ao gerar</div>
+            <div class="errmsg" id="img-errmsg"></div>
+            <ul class="errtips">
+              <li>Prompt mais curto e em inglês</li>
+              <li>Troque para SD 1.5 (mais leve)</li>
+              <li>Aguarde 30s e tente de novo (modelo carregando)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO -->
+  <div class="tab-panel" id="tab-video">
+    <div class="studio">
+      <div class="panel">
+        <div class="panel-header"><div class="pdot" style="background:var(--accent)"></div><div class="ptitle">Configuração de Vídeo</div></div>
+        <div class="panel-body">
+          <div class="callout"><strong>Como funciona:</strong> Gera imagem com FLUX e aplica animação cinemática (Ken Burns). Resultado em vídeo WebM para download.</div>
+          <div>
+            <label class="lbl">✦ Prompt da Cena</label>
+            <textarea id="vid-prompt" placeholder="Descreva a cena... Ex: Enchanted forest at dawn, soft mist, golden light rays through trees, cinematic"></textarea>
+          </div>
+          <div>
+            <div class="lbl">✦ Movimento</div>
+            <div class="chips" id="vid-chips">
+              <div class="chip active" data-v="cinematic">🎬 Cinemático</div>
+              <div class="chip" data-v="drone">🚁 Drone</div>
+              <div class="chip" data-v="epic">🌟 Épico</div>
+              <div class="chip" data-v="closeup">🔍 Close-up</div>
+              <div class="chip" data-v="wide">🏞 Wide</div>
+            </div>
+          </div>
+          <div class="pgrid">
+            <div class="pgroup">
+              <label class="lbl">Modelo</label>
+              <select id="vid-model">
+                <option value="black-forest-labs/FLUX.1-schnell">FLUX Schnell</option>
+                <option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL 1.0</option>
+                <option value="runwayml/stable-diffusion-v1-5">SD 1.5</option>
+              </select>
+            </div>
+            <div class="pgroup">
+              <label class="lbl">Proporção</label>
+              <select id="vid-size">
+                <option value="1280,720">16:9 Wide</option>
+                <option value="720,1280">9:16 Vertical</option>
+                <option value="1024,1024">1:1 Quadrado</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-gen vid" id="vid-btn" onclick="genVideo()">✦ Gerar Vídeo</button>
+        </div>
+      </div>
+
+      <div class="outpanel">
+        <div class="panel-header"><div class="pdot" style="background:var(--accent)"></div><div class="ptitle">Resultado do Vídeo</div></div>
+        <div class="outbody">
+          <div class="empty" id="vid-empty"><div class="empty-icon">🎬</div><p>Configure a cena e clique em Gerar</p></div>
+          <div class="loader" id="vid-loader">
+            <div class="ring"></div>
+            <div class="ltxt" id="vid-ltxt">Gerando cena...</div>
+            <div class="progress-bar"><div class="progress-fill" id="vid-prog"></div></div>
+          </div>
+          <div class="result" id="vid-result">
+            <div id="vid-display"></div>
+            <div class="meta" id="vid-meta"></div>
+            <div class="actions">
+              <button class="btn-act" id="vid-dl-btn" onclick="downloadVid()">⬇ Baixar</button>
+              <button class="btn-act" onclick="addGallery('vid')">＋ Galeria</button>
+            </div>
+          </div>
+          <div class="errbox" id="vid-err">
+            <div class="errtitle">⚠ Erro ao gerar</div>
+            <div class="errmsg" id="vid-errmsg"></div>
+            <ul class="errtips">
+              <li>Prompt em inglês funciona melhor</li>
+              <li>Troque para SD 1.5</li>
+              <li>Aguarde 30s (modelo carregando)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="gallery-sec">
+    <div class="sec-hdr">
+      <h2 class="sec-title">Galeria</h2>
+      <div class="sec-line"></div>
+      <button class="btn-act" style="width:auto;padding:7px 14px;font-size:10px" onclick="clearGallery()">✕ Limpar</button>
+    </div>
+    <div class="ggrid" id="ggrid">
+      <div class="gempty" id="gempty">Suas criações aparecerão aqui</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal()">×</button>
+    <img id="m-img" src="" alt="" style="display:none">
+    <video id="m-vid" autoplay loop muted playsinline controls style="display:none"></video>
+  </div>
+</div>
+
+<footer>VISIONX ∙ <span>FLUX + Hugging Face</span> ∙ 100% Gratuito</footer>
+
+<script>
+  const HF_TOKEN = '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';
+  let imgStyle='', vidMotion='cinematic';
+  let gallery=[], lastImgBlob=null, lastVidBlob=null;
+
+  function switchTab(t){
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(t==='image'&&i===0)||(t==='video'&&i===1)));
+    document.getElementById('tab-image').classList.toggle('active',t==='image');
+    document.getElementById('tab-video').classList.toggle('active',t==='video');
+  }
+
+  function initChips(id,cb){
+    document.querySelectorAll(`#${id} .chip`).forEach(c=>{
+      c.addEventListener('click',()=>{
+        document.querySelectorAll(`#${id} .chip`).forEach(x=>x.classList.remove('active'));
+        c.classList.add('active'); cb(c.dataset.v);
+      });
+    });
+  }
+  initChips('img-chips',v=>imgStyle=v);
+  initChips('vid-chips',v=>vidMotion=v);
+
+  function setState(t,s,msg){
+    document.getElementById(`${t}-empty`).style.display=s==='idle'?'block':'none';
+    document.getElementById(`${t}-loader`).classList.toggle('on',s==='loading');
+    document.getElementById(`${t}-result`).classList.toggle('on',s==='result');
+    document.getElementById(`${t}-err`).classList.toggle('on',s==='error');
+    if(s==='error') document.getElementById(`${t}-errmsg`).textContent=msg||'';
+  }
+
+  function animProgress(id, durationMs){
+    const fill=document.getElementById(id);
+    fill.style.width='0%';
+    const start=Date.now();
+    const iv=setInterval(()=>{
+      const p=Math.min((Date.now()-start)/durationMs*100,92);
+      fill.style.width=p+'%';
+      if(p>=92) clearInterval(iv);
+    },300);
+    return ()=>{ clearInterval(iv); fill.style.width='100%'; };
+  }
+
+  // Call HuggingFace Inference API
+  async function callHF(model, prompt, width, height){
+    const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${HF_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: { width, height, num_inference_steps: 4, guidance_scale: 3.5 }
+      })
+    });
+
+    if(!res.ok){
+      const txt = await res.text();
+      // Model loading (503) — retry after wait
+      if(res.status===503){
+        throw new Error('Modelo carregando (pode levar ~30s). Tente novamente em instantes.');
+      }
+      throw new Error(`Erro ${res.status}: ${txt.slice(0,120)}`);
+    }
+
+    const blob = await res.blob();
+    if(!blob.type.startsWith('image/')){
+      const txt = await blob.text();
+      throw new Error('Resposta inesperada: '+txt.slice(0,100));
+    }
+    return blob;
+  }
+
+  // ── GENERATE IMAGE ──
+  async function genImage(){
+    const prompt = document.getElementById('img-prompt').value.trim();
+    if(!prompt){alert('Digite um prompt!');return;}
+
+    const model = document.getElementById('img-model').value;
+    const [w,h] = document.getElementById('img-size').value.split(',').map(Number);
+    const fullPrompt = prompt + imgStyle;
+
+    setState('img','loading');
+    document.getElementById('img-btn').disabled=true;
+
+    const steps=['Enviando prompt…','Gerando com FLUX…','Processando…','Quase pronto…'];
+    let si=0;
+    const iv=setInterval(()=>document.getElementById('img-ltxt').textContent=steps[si=(si+1)%steps.length],3000);
+    const doneProgress = animProgress('img-prog', 25000);
+
+    try {
+      const blob = await callHF(model, fullPrompt, w, h);
+      clearInterval(iv); doneProgress();
+      lastImgBlob = blob;
+      const url = URL.createObjectURL(blob);
+      const img = document.getElementById('img-out');
+      img.src = url;
+      img.classList.add('fadein');
+      document.getElementById('img-meta').innerHTML=`Modelo: <strong>${model.split('/')[1]}</strong> &nbsp;·&nbsp; ${w}×${h}px`;
+      setState('img','result');
+    } catch(err){
+      clearInterval(iv); doneProgress();
+      setState('img','error', err.message);
+    } finally {
+      document.getElementById('img-btn').disabled=false;
+    }
+  }
+
+  function downloadImg(){
+    if(!lastImgBlob) return;
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(lastImgBlob);
+    a.download='visionx-image.png';
+    a.click();
+  }
+
+  // ── GENERATE VIDEO ──
+  async function genVideo(){
+    const prompt = document.getElementById('vid-prompt').value.trim();
+    if(!prompt){alert('Digite um prompt!');return;}
+
+    const model = document.getElementById('vid-model').value;
+    const [w,h] = document.getElementById('vid-size').value.split(',').map(Number);
+
+    const motionMap={
+      cinematic:'cinematic slow motion, epic lighting, masterpiece',
+      drone:'aerial drone view, bird eye, descending slowly',
+      epic:'dramatic epic scene, grand scale, sweeping',
+      closeup:'extreme close up, macro details, shallow depth of field',
+      wide:'wide angle panoramic, sweeping landscape'
+    };
+    const fullPrompt = prompt + ', ' + (motionMap[vidMotion]||'cinematic');
+
+    setState('vid','loading');
+    document.getElementById('vid-btn').disabled=true;
+
+    const steps=['Gerando cena…','Aguardando FLUX…','Processando…','Animando…'];
+    let si=0;
+    const iv=setInterval(()=>document.getElementById('vid-ltxt').textContent=steps[si=(si+1)%steps.length],3000);
+    const doneProgress=animProgress('vid-prog',28000);
+
+    try {
+      const blob = await callHF(model, fullPrompt, w, h);
+      clearInterval(iv);
+      document.getElementById('vid-ltxt').textContent='Aplicando animação…';
+
+      // Animate with canvas
+      const imgUrl = URL.createObjectURL(blob);
+      const baseImg = new Image();
+      await new Promise((res,rej)=>{baseImg.onload=res;baseImg.onerror=rej;baseImg.src=imgUrl;});
+
+      const canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      const ctx=canvas.getContext('2d');
+
+      let vidBlobUrl=null;
+      if(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported('video/webm')){
+        const stream=canvas.captureStream(24);
+        const rec=new MediaRecorder(stream,{mimeType:'video/webm',videoBitsPerSecond:4000000});
+        const chunks=[];
+        rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+        const dur=6000,t0=Date.now();
+        rec.start(150);
+        await new Promise(res=>{
+          const draw=()=>{
+            const p=Math.min((Date.now()-t0)/dur,1);
+            const e=p<.5?2*p*p:-1+(4-2*p)*p;
+            ctx.clearRect(0,0,w,h);
+            let sc,tx,ty;
+            if(vidMotion==='drone'){sc=1.15-e*.12;tx=(w-w*sc)/2;ty=(h-h*sc)/2;}
+            else if(vidMotion==='closeup'){sc=1+e*.18;tx=(w-w*sc)/2;ty=(h-h*sc)/2;}
+            else if(vidMotion==='wide'){sc=1.06;tx=-e*w*.07;ty=0;}
+            else{sc=1+e*.09;tx=(w-w*sc)/2+Math.sin(p*Math.PI)*16;ty=(h-h*sc)/2;}
+            ctx.save();ctx.translate(tx,ty);ctx.drawImage(baseImg,0,0,w*sc,h*sc);ctx.restore();
+            if(p<1)requestAnimationFrame(draw);else res();
+          };
+          requestAnimationFrame(draw);
+        });
+        rec.stop();
+        await new Promise(r=>rec.onstop=r);
+        const vblob=new Blob(chunks,{type:'video/webm'});
+        lastVidBlob=vblob;
+        vidBlobUrl=URL.createObjectURL(vblob);
+      }
+
+      doneProgress();
+      const disp=document.getElementById('vid-display');
+      disp.innerHTML='';
+      if(vidBlobUrl){
+        const v=document.createElement('video');
+        v.src=vidBlobUrl;v.className='out-vid fadein';
+        v.autoplay=true;v.loop=true;v.muted=true;v.controls=true;v.playsInline=true;
+        disp.appendChild(v);
+      } else {
+        const ai=document.createElement('img');
+        ai.src=imgUrl;ai.className='out-anim fadein';
+        disp.appendChild(ai);
+        lastVidBlob=blob;
+      }
+      document.getElementById('vid-meta').innerHTML=`Cena: <strong>${prompt.slice(0,50)}…</strong><br>Movimento: ${vidMotion} &nbsp;·&nbsp; ${w}×${h}px`;
+      setState('vid','result');
+    } catch(err){
+      clearInterval(iv); doneProgress();
+      setState('vid','error',err.message);
+    } finally {
+      document.getElementById('vid-btn').disabled=false;
+    }
+  }
+
+  function downloadVid(){
+    if(!lastVidBlob) return;
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(lastVidBlob);
+    a.download='visionx-video.webm';
+    a.click();
+  }
+
+  // Gallery
+  function addGallery(t){
+    const blob=t==='img'?lastImgBlob:lastVidBlob;
+    if(!blob)return;
+    gallery.unshift({t,url:URL.createObjectURL(blob),isVid:t==='vid'&&blob.type==='video/webm'});
+    renderGallery();
+  }
+  function renderGallery(){
+    const g=document.getElementById('ggrid');
+    document.getElementById('gempty').style.display=gallery.length?'none':'block';
+    g.innerHTML=`<div class="gempty" id="gempty" style="display:${gallery.length?'none':'block'}">Suas criações aparecerão aqui</div>`+
+      gallery.map((it,i)=>`
+        <div class="gitem" onclick="openGModal(${i})">
+          ${it.isVid?`<video src="${it.url}" autoplay loop muted playsinline></video>`:`<img src="${it.url}" loading="lazy">`}
+          <div class="goverlay"><div class="gbadge">Ver</div></div>
+          <div class="gtype">${it.t==='img'?'🖼':'🎬'}</div>
+        </div>`).join('');
+  }
+  function clearGallery(){gallery=[];renderGallery();}
+
+  function openModal(t){
+    const mi=document.getElementById('m-img'),mv=document.getElementById('m-vid');
+    if(t==='img'&&lastImgBlob){mi.src=URL.createObjectURL(lastImgBlob);mi.style.display='block';mv.style.display='none';}
+    else if(t==='vid'&&lastVidBlob){
+      if(lastVidBlob.type==='video/webm'){mv.src=URL.createObjectURL(lastVidBlob);mv.style.display='block';mi.style.display='none';}
+      else{mi.src=URL.createObjectURL(lastVidBlob);mi.style.display='block';mv.style.display='none';}
+    }
+    document.getElementById('modal').classList.add('on');
+  }
+  function openGModal(i){
+    const it=gallery[i],mi=document.getElementById('m-img'),mv=document.getElementById('m-vid');
+    if(it.isVid){mv.src=it.url;mv.style.display='block';mi.style.display='none';}
+    else{mi.src=it.url;mi.style.display='block';mv.style.display='none';}
+    document.getElementById('modal').classList.add('on');
+  }
+  function closeModal(e){if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('on');}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modal').classList.remove('on');});
+</script>
+</body>
+</html>
