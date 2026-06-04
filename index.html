@@ -378,17 +378,22 @@
 
   // Call HuggingFace Inference API
   async function callHF(model, prompt, width, height){
-    const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${HF_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: { width, height, num_inference_steps: 4, guidance_scale: 3.5 }
-      })
-    });
+    let res;
+    try {
+      res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${HF_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: { width, height, num_inference_steps: 4, guidance_scale: 3.5 }
+        })
+      });
+    } catch(fetchErr) {
+      throw new Error('Erro de rede: ' + fetchErr.message + ' | Token: ' + (HF_TOKEN ? HF_TOKEN.slice(0,8)+'...' : 'VAZIO'));
+    }
 
     if(!res.ok){
       const txt = await res.text();
